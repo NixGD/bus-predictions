@@ -1,0 +1,7 @@
+wandb/
+
+notebooks/.ipynb_checkpoints
+
+raw_data/
+
+.env
