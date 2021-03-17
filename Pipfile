@@ -11,6 +11,8 @@ sklearn = "*"
 keras = "*"
 tensorflow = "*"
 wandb = "*"
+pydot = "*"
+torch = "*"
 
 [dev-packages]
 
