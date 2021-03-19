@@ -13,6 +13,8 @@ from torch.utils.tensorboard import SummaryWriter
 from .data_views import get_data_loaders
 from .modules.FullHistory import FullHistory
 
+from .utils import create_output_folder
+
 def run_loop(model, dl, loss_func, step=False, optimizer=None):
     total_loss = 0
     for trip, hist, y in dl:
@@ -47,11 +49,7 @@ def graph_results(model, dl):
     plt.ioff()
     absolute_errors = (preds-ys).reshape(-1).numpy()
     plt.hist(absolute_errors, bins=50)
-
-    if not os.path.exists("output/plots"):
-        if not os.path.exists("output"):
-            os.mkdir("output")
-        os.mkdir("output/plots")
+    create_output_folder("plots")
     plt.savefig("output/plots/absolute_errors.png")
 
 def run_experiment(
@@ -95,7 +93,12 @@ def run_experiment(
         print(f"Epoch {epoch}:\t training: {train_loss:,.1f}\t mse: {mse_loss:,.1f} \t mae: {mae_loss:,.1f}")
 
     if not quick:
+        if not os.path.exists("output"):
+            os.mkdir("output")
         graph_results(model, test_dl)
+        create_output_folder("params")
+        torch.save(model.state_dict(), "output/params/full_history.pt")
+
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
