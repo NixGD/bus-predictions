@@ -7,14 +7,13 @@ name = "pypi"
 matplotlib = "*"
 jupyter = "*"
 pandas = "*"
-sklearn = "*"
-keras = "*"
-tensorflow = "*"
 wandb = "*"
 pydot = "*"
 torch = "*"
+guildai = "*"
+tensorboard = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"

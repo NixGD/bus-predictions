@@ -1,15 +1,24 @@
 import pandas as pd
 
-from utils import *
+from .utils import *
 
-def get_trip_data():
+import torch
+import torch.utils.data as data
+
+from pathlib import Path
+
+def get_trip_data(quick=False):
     """Returns a pandas dataframe with one row for every inbound 1-trip in
     the dataset. Does some minmal processing: eg getting datatypes and filtering
     out some bad data."""
     date_cols = ["service_date"] + stop_list
-    trip_data = pd.read_csv("../data/one_trips.csv",
+
+    trip_data = pd.read_csv("data/one_trips.csv",
                        index_col="half_trip_id",
                        parse_dates = date_cols)
+
+    if quick:
+        trip_data = trip_data.iloc[:1000]
 
     # ensure every stop is in the correct
     # currently removes about 1 in 10000 trips
@@ -24,8 +33,8 @@ def get_trip_data():
     return trip_data
 
 
-def get_trip_and_history_tables(current_stop_index=6, ONE_HOT_WEEKDAY=True):
-    trip_data = get_trip_data()
+def get_trip_and_history_tables(current_stop_index=6, ONE_HOT_WEEKDAY=True, quick=False):
+    trip_data = get_trip_data(quick=quick)
 
     prev_stops = stop_list[:current_stop_index]
     current_stop = stop_list[current_stop_index]
@@ -61,3 +70,31 @@ def get_trip_and_history_tables(current_stop_index=6, ONE_HOT_WEEKDAY=True):
     trip_features = trip_features[["current_time", "headway"]+weekdays+["to_target"]]
 
     return trip_features, leg_history
+
+
+def get_data_loaders(batch_size=16, quick=False):
+    trip_features, leg_history = get_trip_and_history_tables(quick=quick)
+
+    target_col = "to_target"
+
+    y = trip_features.pop(target_col).to_numpy().astype('float32')
+    x_trip = trip_features.to_numpy().astype('float32')
+    x_hist = leg_history.to_numpy().astype('float32')
+
+    # Normalize values
+    x_trip = (x_trip - x_trip.mean()) / x_trip.std()
+    x_hist = (x_hist - x_hist.mean()) / x_hist.std()
+
+    alldata = data.TensorDataset(
+        torch.from_numpy(x_trip),
+        torch.from_numpy(x_hist),
+        torch.from_numpy(y).reshape(-1, 1)
+    )
+
+    test_size = int(0.3*len(alldata))
+    train, test = data.random_split(alldata, [len(alldata)-test_size, test_size])
+
+    train_dl = data.DataLoader(train, batch_size=batch_size, shuffle=True)
+    test_dl = data.DataLoader(test, batch_size=batch_size)
+
+    return train_dl, test_dl

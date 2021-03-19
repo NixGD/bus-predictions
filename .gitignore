@@ -3,5 +3,7 @@ wandb/
 notebooks/.ipynb_checkpoints
 
 raw_data/
+output/
+runs/
 
 .env

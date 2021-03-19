@@ -1,0 +1,14 @@
+train:
+  description: trains with full stop history
+  main: src.encoding_run
+  output-scalars: no
+  flags-des: args
+  flags-import: all
+  flags:
+    quick:
+      description: a speedy run for testing
+      type: boolean
+      arg-switch: yes
+  requires:
+    - file: data/one_trips.csv
+      target-path: data
